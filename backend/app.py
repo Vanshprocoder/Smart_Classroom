@@ -122,6 +122,10 @@ def home():
         "model": GEMINI_MODEL
     }
 
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
 
 # ==================================================
 # 7. RECEIVE ESP32 SENSOR DATA
