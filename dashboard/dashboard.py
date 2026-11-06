@@ -1,6 +1,5 @@
 import os
 import streamlit as st
-import streamlit as st
 import pandas as pd
 import plotly.express as px
 import requests
@@ -54,6 +53,39 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+
+
+# ==================================================
+# LIGHT THEME OVERRIDES
+# ==================================================
+st.markdown(
+    """
+    <style>
+    .stApp { background: #f5f7fb; color: #172033; }
+    [data-testid="stHeader"] { background: rgba(245,247,251,.94); }
+    [data-testid="stSidebar"] { background: #ffffff; border-right: 1px solid #e5eaf2; }
+    .block-container { padding-top: 1.8rem; padding-bottom: 2.5rem; max-width: 1440px; }
+    .main-title { color: #17365f; font-size: 2rem; font-weight: 800; letter-spacing: -.5px; }
+    .sub-title { color: #64748b; font-size: 1rem; margin-top: .35rem; }
+    [data-testid="stMetric"] {
+        background: #ffffff; border: 1px solid #e5eaf2; border-radius: 14px;
+        padding: 1rem; box-shadow: 0 3px 12px rgba(28,55,90,.045);
+    }
+    [data-testid="stMetricLabel"] { color: #64748b; font-weight: 650; }
+    [data-testid="stMetricValue"] { color: #17365f; font-weight: 800; }
+    .report-box {
+        padding: 1.25rem; border-radius: 14px; background: #ffffff;
+        border: 1px solid #e5eaf2; box-shadow: 0 3px 14px rgba(28,55,90,.04);
+    }
+    .stButton > button { border-radius: 10px; font-weight: 650; min-height: 2.6rem; }
+    [data-testid="stDataFrame"], [data-testid="stPlotlyChart"] {
+        background: #ffffff; border: 1px solid #e5eaf2; border-radius: 12px;
+    }
+    hr { border-color: #e5eaf2; }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
 # ==================================================
 # 3. API FUNCTIONS
@@ -187,7 +219,22 @@ st.sidebar.caption(
 # 6. FETCH SENSOR DATA
 # ==================================================
 
-api_data = get_api_data("readings")
+with st.status("Loading Smart Classroom data...", expanded=True) as loading:
+    st.write("Connecting to the backend...")
+    api_data = get_api_data("readings")
+    if api_data is not None:
+        st.write("Retrieving Firebase sensor readings...")
+        loading.update(
+            label="Dashboard data loaded successfully",
+            state="complete",
+            expanded=False,
+        )
+    else:
+        loading.update(
+            label="Unable to load dashboard data",
+            state="error",
+            expanded=True,
+        )
 
 if api_data is None:
     st.stop()
@@ -266,6 +313,10 @@ light_on_percentage = round(
 if page == "Dashboard":
 
     st.subheader("Classroom Overview")
+    st.info(
+        "Data shown below is retrieved from Firebase. If the ESP32 is "
+        "currently disconnected, these readings represent historical data."
+    )
 
     col1, col2, col3, col4 = st.columns(4)
 
