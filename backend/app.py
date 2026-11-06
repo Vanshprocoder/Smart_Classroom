@@ -40,12 +40,21 @@ logger = logging.getLogger(__name__)
 
 if not FIREBASE_DATABASE_URL:
     raise RuntimeError(
-        "FIREBASE_DATABASE_URL is missing from backend/.env"
+        "FIREBASE_DATABASE_URL is missing from environment variables."
     )
 
-if not SERVICE_ACCOUNT_PATH.exists():
+# Use Render Secret File path if configured.
+# Otherwise, use the local serviceAccountKey.json file.
+SERVICE_ACCOUNT_PATH = Path(
+    os.getenv(
+        "FIREBASE_CREDENTIALS_PATH",
+        str(BASE_DIR / "serviceAccountKey.json")
+    )
+)
+
+if not SERVICE_ACCOUNT_PATH.is_file():
     raise RuntimeError(
-        "serviceAccountKey.json was not found in backend folder."
+        f"Firebase credentials file not found at: {SERVICE_ACCOUNT_PATH}"
     )
 
 if not firebase_admin._apps:
@@ -61,6 +70,7 @@ if not firebase_admin._apps:
         }
     )
 
+print("Firebase connected successfully!")
 
 # ==================================================
 # 3. GEMINI INITIALIZATION
